@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>RLVNT Commission Calculator</title>
+  <style>
+    /* Basic resets */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      color: #333;
+      max-width: 1200px;
+      margin: auto;
+      padding: 20px;
+      transition: background-color 0.3s, color 0.3s;
+    }
+    /* Dark Mode */
+    body.dark-mode {
+      background-color: #121212;
+      color: #ccc;
+    }
+
+    h1, h2 {
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+    
+    h2.category-title {
+        text-align: left;
+        margin-top: 1.5rem;
+        margin-bottom: 1rem;
+        border-bottom: 2px solid #0073e6;
+        padding-bottom: 5px;
+    }
+
+    /* Header / Toggle container */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    .dark-mode-toggle {
+      background-color: #0073e6;
+      color: white;
+      border: none;
+      cursor: pointer;
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      transition: background-color 0.3s;
+    }
+    .dark-mode-toggle:hover {
+      background-color: #005bb5;
+    }
+
+    /* Main Containers */
+    .container {
+      background-color: #fff;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 20px;
+      margin-bottom: 20px;
+      transition: background-color 0.3s;
+    }
+    
+    body.dark-mode .container {
+      background-color: #1e1e1e;
+      border-color: #444;
+    }
+
+    /* Two-column layout for the input rows */
+    .form-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    .form-row label {
+      width: 40%;
+      font-weight: bold;
+    }
+    .form-row input[type="number"] {
+      width: 60%;
+      padding: 8px;
+      margin-left: 10px;
+    }
+
+    /* Commission result styling */
+    .result {
+      margin-top: 15px;
+      font-weight: bold;
+      font-size: 1.2em;
+      text-align: center;
+    }
+
+    /* The button (Calculate Commission) */
+    .calculate-btn {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      background-color: #0073e6;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+      border-radius: 4px;
+      margin-top: 10px;
+      transition: background-color 0.3s;
+    }
+    .calculate-btn:hover {
+      background-color: #005bb5;
+    }
+
+    /* Checkbox / Adder groups */
+    .checkbox-group-inner {
+      column-count: 2;
+      column-gap: 1.5rem;
+    }
+    .checkbox-group-inner label {
+      display: block; /* Changed to block for better spacing */
+      margin-bottom: 0.75rem;
+      cursor: pointer;
+      line-height: 1.4;
+    }
+    .checkbox-group-inner input[type="checkbox"] {
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+
+    /* Battery dropdown */
+    .battery-select {
+      font-size: 1em;
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 1rem;
+    }
+
+    /* Adders & Battery Cost as read-only display */
+    .adders-cost-row {
+      margin-top: 15px;
+      text-align: center;
+    }
+    .adders-cost-row label {
+      font-weight: bold;
+      margin-right: 10px;
+    }
+    .adders-cost-row span {
+      display: inline-block;
+      min-width: 100px;
+      font-weight: bold;
+      background-color: #f0f0f0;
+      padding: 5px 10px;
+      border-radius: 4px;
+    }
+    body.dark-mode .adders-cost-row span {
+      background-color: #333;
+      color: #ccc;
+    }
+
+    /* Responsive design */
+    @media (max-width: 700px) {
+      .header {
+        flex-direction: column;
+        align-items: stretch;
+        text-align: center;
+      }
+      .dark-mode-toggle {
+        margin-top: 10px;
+      }
+      .checkbox-group-inner {
+        column-count: 1;
+      }
+      .form-row {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .form-row label, .form-row input[type="number"] {
+        width: 100%;
+        margin: 5px 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>RLVNT Commission Calculator</h1>
+    <button class="dark-mode-toggle" onclick="toggleDarkMode()">Toggle Dark Mode</button>
+  </div>
+
+  <div class="container">
+    <h2>Commission Inputs</h2>
+
+    <div class="form-row">
+      <label for="systemSize">System Size (kW):</label>
+      <input type="number" id="systemSize" placeholder="Enter system size in kW" required oninput="updateAddersBattery()" />
+    </div>
+
+    <div class="form-row">
+      <label for="ppw">Price per Watt (PPW):</label>
+      <input type="number" id="ppw" placeholder="Enter price per watt" required />
+    </div>
+
+    <div class="form-row">
+      <label for="redline">Redline:</label>
+      <input type="number" id="redline" placeholder="Enter redline value" required />
+    </div>
+
+    <div class="adders-cost-row">
+      <label>Adders & Battery Cost:</label>
+      <span id="addersBattery">$0.00</span>
+    </div>
+
+    <button class="calculate-btn" onclick="calculateCommission()">Calculate Commission</button>
+
+    <div class="result" id="result">Commission: $0.00</div>
+  </div>
+
+  <div class="container">
+    <h2>Adders</h2>
+
+    <h2 class="category-title">Battery & Storage</h2>
+    <select class="battery-select" id="batteryOptions" onchange="updateAddersBattery()">
+      <option value="0">No Battery Selected</option>
+      <option value="5000">Enphase 5p - $5,000</option>
+      <option value="9000">Enphase 10p - $9,000</option>
+      <option value="13000">Enphase 15p - $13,000</option>
+      <option value="17000">Enphase 20p - $17,000</option>
+      <option value="21000">Enphase 25p - $21,000</option>
+      <option value="25000">Enphase 30p - $25,000</option>
+      <option value="29000">Enphase 35p - $29,000</option>
+      <option value="33000">Enphase 40p - $33,000</option>
+      <option value="12000">Solaredge Battery - $12,000</option>
+      <option value="24000">Solaredge Battery x2 - $24,000</option>
+      <option value="14000">Powerwall 3 - $14,000</option>
+      <option value="2500">Standalone Battery - $2,500</option>
+      <option value="5000">Back up - $5,000</option>
+    </select>
+    
+    <h2 class="category-title">Per-Watt Adders</h2>
+    <div class="checkbox-group-inner">
+        <label><input type="checkbox" data-cost-per-watt="0.10" onchange="updateAddersBattery()"> Align Warranty ($0.10/W)</label>
+        <label><input type="checkbox" data-cost-per-watt="0.15" onchange="updateAddersBattery()"> Any Roof Type Other Than Comp Shingle ($0.15/W)</label>
+        <label><input type="checkbox" data-cost-per-watt="0.20" onchange="updateAddersBattery()"> Concrete Tile Roof ($0.20/W)</label>
+        <label><input type="checkbox" data-cost-per-watt="0.10" onchange="updateAddersBattery()"> Steep Pitch Roof 31-40 Degrees ($0.10/W)</label>
+        <label><input type="checkbox" data-cost-per-watt="0.15" onchange="updateAddersBattery()"> Steep Pitch Roof 41-45 Degrees ($0.15/W)</label>
+        <label><input type="checkbox" data-cost-per-watt="0.05" onchange="updateAddersBattery()"> Trenching up to 50ft ($0.05/W)</label>
+        <label><input type="checkbox" data-cost-per-watt="0.10" onchange="updateAddersBattery()"> Trenching 51-100ft ($0.10/W)</label>
+    </div>
+    
+    <h2 class="category-title">Main Panel & Electrical</h2>
+    <div class="checkbox-group-inner">
+        <label><input type="checkbox" value="3000" onchange="updateAddersBattery()"> MPU - Underground (like-for-like) - $3,000</label>
+        <label><input type="checkbox" value="5250" onchange="updateAddersBattery()"> MPU - Overhead + Panel Relocate - $5,250</label>
+        <label><input type="checkbox" value="5250" onchange="updateAddersBattery()"> MPU - Standard + Relocate - $5,250</label>
+        <label><input type="checkbox" value="2250" onchange="updateAddersBattery()"> Panel Relocation - $2,250</label>
+        <label><input type="checkbox" value="750" onchange="updateAddersBattery()"> Sub-panel - $750</label>
+        <label><input type="checkbox" value="750" onchange="updateAddersBattery()"> Derate - $750</label>
+        <label><input type="checkbox" value="750" onchange="updateAddersBattery()"> Busbar Verification (avoid MPU) - $750</label>
+        <label><input type="checkbox" value="750" onchange="updateAddersBattery()"> Obstruction Removal (Avoid Panel Relocate) - $750</label>
+        <label><input type="checkbox" value="500" onchange="updateAddersBattery()"> Orphan Panel - $500</label>
+        <label><input type="checkbox" value="925" onchange="updateAddersBattery()"> Custom Dead Front - $925</label>
+        <label><input type="checkbox" value="3000" onchange="updateAddersBattery()"> MPI/Hi-Tie - $3,000</label>
+    </div>
+
+    <h2 class="category-title">Interconnection & Fees</h2>
+    <div class="checkbox-group-inner">
+        <label><input type="checkbox" value="650" onchange="updateAddersBattery()"> PG&E Interconnection (Non-Export) - $650</label>
+        <label><input type="checkbox" value="250" onchange="updateAddersBattery()"> Central SCE MPU Adder - $250</label>
+        <label><input type="checkbox" value="500" onchange="updateAddersBattery()"> LID Interconnection - $500</label>
+        <label><input type="checkbox" value="450" onchange="updateAddersBattery()"> Merced Interconnection - $450</label>
+        <label><input type="checkbox" value="150" onchange="updateAddersBattery()"> Modesto Interconnection - $150</label>
+        <label><input type="checkbox" value="300" onchange="updateAddersBattery()"> SMUD Interconnection &lt; 10kW - $300</label>
+        <label><input type="checkbox" value="750" onchange="updateAddersBattery()"> SMUD Interconnection +10kW - $750</label>
+        <label><input type="checkbox" value="450" onchange="updateAddersBattery()"> TID Interconnection - $450</label>
+        <label><input type="checkbox" value="300" onchange="updateAddersBattery()"> HOA Applications - $300</label>
+        <label><input type="checkbox" value="275" onchange="updateAddersBattery()"> Engineer Stamp - $275</label>
+    </div>
+    
+    <h2 class="category-title">Travel & Site Work</h2>
+    <div class="checkbox-group-inner">
+        <label><input type="checkbox" value="750" onchange="updateAddersBattery()"> Coastal Travel Adder - $750</label>
+        <label><input type="checkbox" value="8000" onchange="updateAddersBattery()"> Ground mount - $8,000</label>
+        <label><input type="checkbox" value="300" onchange="updateAddersBattery()"> Lathe & Stucco - $300</label>
+        <label><input type="checkbox" value="250" onchange="updateAddersBattery()"> No Show / Re-Survey - $250</label>
+        <label><input type="checkbox" value="250" onchange="updateAddersBattery()"> Cancelled Survey On-site - $250</label>
+    </div>
+    
+    <h2 class="category-title">General & Miscellaneous</h2>
+    <div class="checkbox-group-inner">
+        <label><input type="checkbox" value="15500" onchange="updateAddersBattery()"> Generac 22kW - $15,500</label>
+        <label><input type="checkbox" value="675" onchange="updateAddersBattery()"> Non-export add-on - $675</label>
+        <label><input type="checkbox" value="1000" onchange="updateAddersBattery()"> Cell Card - $1,000</label>
+        <label><input type="checkbox" value="1000" onchange="updateAddersBattery()"> Consumption Monitoring (CTs) - $1,000</label>
+        <label><input type="checkbox" value="1000" onchange="updateAddersBattery()"> HVAC - Tune-up Package (1000) - $1,000</label>
+        <label><input type="checkbox" value="600" onchange="updateAddersBattery()"> HVAC - Tune-up Package (600) - $600</label>
+        <label><input type="checkbox" value="250" onchange="updateAddersBattery()"> HVAC - Tune-up Package (250) - $250</label>
+        <label><input type="checkbox" value="750" onchange="updateAddersBattery()"> Post Permit Change Order/Resign - $750</label>
+        <label><input type="checkbox" value="1500" onchange="updateAddersBattery()"> Post Install Change Order/Resign - $1,500</label>
+        <label><input type="checkbox" value="1500" onchange="updateAddersBattery()"> System Size 3.01 - 4 kW - $1,500</label>
+        <label><input type="checkbox" value="1500" onchange="updateAddersBattery()"> Vivint Indirect - Essentials Basic - $1,500</label>
+        <label><input type="checkbox" value="2300" onchange="updateAddersBattery()"> Vivint Indirect - Essentials Plus - $2,300</label>
+    </div>
+  </div>
+
+  <script>
+    /* ----------- Dark Mode Toggle ----------- */
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark-mode');
+    }
+
+    /* ----------- Summation: Adders + Battery ----------- */
+    function updateAddersBattery() {
+      let total = 0;
+
+      // Get the system size from the input (kW -> W)
+      const systemSize = parseFloat(document.getElementById("systemSize").value) || 0;
+      const totalWatts = systemSize * 1000;
+
+      // Sum all checked checkboxes (both fixed $ and cost-per-watt)
+      const selectedCheckboxes = document.querySelectorAll('input[type="checkbox"]:checked');
+      selectedCheckboxes.forEach(checkbox => {
+        // Check if there's a per-watt attribute
+        const costPerWatt = checkbox.dataset.costPerWatt;
+        if (costPerWatt && totalWatts > 0) {
+          // $/W type adder
+          total += totalWatts * parseFloat(costPerWatt);
+        } else {
+          // Fixed-dollar type adder
+          total += parseFloat(checkbox.value) || 0;
+        }
+      });
+
+      // Add selected battery dropdown
+      const batterySelect = document.getElementById('batteryOptions');
+      if (batterySelect) {
+          total += parseFloat(batterySelect.value) || 0;
+      }
+      
+      // Update read-only display
+      document.getElementById("addersBattery").textContent = `$${total.toFixed(2)}`;
+    }
+
+    /* ----------- Commission Calculation ----------- */
+    function calculateCommission() {
+      const systemSize = parseFloat(document.getElementById("systemSize").value);
+      const ppw = parseFloat(document.getElementById("ppw").value);
+      const redline = parseFloat(document.getElementById("redline").value);
+
+      // Grab the displayed adders cost
+      const addersBatteryText = document.getElementById("addersBattery").textContent.replace('$', '').replace(',', '');
+      const addersBattery = parseFloat(addersBatteryText) || 0;
+
+      if (isNaN(systemSize) || systemSize <= 0 || isNaN(ppw) || isNaN(redline)) {
+        alert("Please enter valid positive numbers in all input fields.");
+        return;
+      }
+
+      // Simplified Commission Formula:
+      // Total Contract Price = System Size (in watts) * PPW
+      const totalContractPrice = (systemSize * 1000) * ppw;
+      
+      // Redline Cost = Redline PPW * System Size (in watts)
+      const redlineCost = redline * (systemSize * 1000);
+      
+      // Commission = Total Price - Redline Cost - Adders
+      const commission = totalContractPrice - redlineCost - addersBattery;
+
+      document.getElementById("result").textContent = `Commission: $${commission.toFixed(2)}`;
+    }
+
+    // Initial call to set the adder cost to $0.00 on page load
+    updateAddersBattery();
+  </script>
+</body>
+</html>
